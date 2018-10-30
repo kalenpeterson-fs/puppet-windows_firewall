@@ -6,7 +6,49 @@ Puppet::Type.type(:windows_firewall_rule).provide(:windows_firewall_rule, :paren
   mk_resource_methods
   desc "Windows Firewall"
 
-  commands :cmd => "netsh"
+  # We need to be able to invoke the PS bridge script in both agent and apply
+  # mode. In agent mode, the file will be found in LIBDIR, in apply mode it will
+  # be found somewhere under CODEDIR. We need to read from the appropriate dir
+  # for each mode to avoid unexpected results
+  def self.resolve_ps_bridge
+
+    mod_dir = "windows_firewall/lib"
+    script_path = "ps/windows_firewall/ps-bridge.ps1"
+
+    # Use storeconfig as a proxy for "agentmode". Storeconfigs is used to
+    # indicate to the agent whether there is a puppetdb instance alive
+    if Puppet.settings[:storeconfigs]
+      Puppet.debug "detected agent mode"
+      script = File.join(Puppet.settings[:libdir], script_path)
+    else
+      Puppet.debug "detected apply mode"
+
+      # 1st priority - environment
+      check_for_script = File.join(
+          Puppet.settings[:environmentpath],
+          Puppet.settings[:envirionment],
+          mod_dir,
+          script_path
+      )
+
+      if File.exists? check_for_script
+        script = check_for_script
+      else
+        # 2nd priority - global
+        Puppet.settings[:modulepath].split(":").each do |path_element|
+          check_for_script = File.join(path_element, mod_dir, script_path)
+          if File.exists? check_for_script
+            script = check_for_script
+            break;
+          end
+        end
+      end
+    end
+
+    cmd = "powershell.exe -File #{script}"
+
+    cmd
+  end
 
   def self.prefetch(resources)
     instances.each do |prov|
@@ -36,7 +78,7 @@ Puppet::Type.type(:windows_firewall_rule).provide(:windows_firewall_rule, :paren
   end
 
   def self.instances
-    PuppetX::WindowsFirewall.rules(command(:cmd)).collect { |hash| new(hash) }
+    PuppetX::WindowsFirewall.rules(resolve_ps_bridge).collect { |hash| new(hash) }
   end
 
   def flush
@@ -48,8 +90,8 @@ Puppet::Type.type(:windows_firewall_rule).provide(:windows_firewall_rule, :paren
     # therefore, delete this rule now and create a new one if needed
     if @property_hash[:ensure] == :present
       Puppet.notice("(windows_firewall) deleting rule '#{@resource[:name]}'")
-      cmd = "#{command(:cmd)} advfirewall firewall delete rule name=\"#{@resource[:name]}\""
-      output = execute(cmd).to_s
+      c = [command(:cmd), "advfirewall", "firewall", "delete", "rule", "name=\"#{@resource[:name]}\""]
+      output = execute(c).to_s
     end
 
     if @resource[:ensure] == :present

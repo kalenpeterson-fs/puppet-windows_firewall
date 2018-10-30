@@ -4,6 +4,8 @@ Puppet::Type.newtype(:windows_firewall_rule) do
   @doc = "Manage Windows Firewall with Puppet"
 
   ensurable do
+    desc "How to ensure this firewall rule (`present` or `absent`)"
+
     defaultvalues
 
     defaultto(:present)
@@ -37,12 +39,12 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     desc "Which profile(s) this rule belongs to, use an array to pass more then one"
     newvalues(:domain, :private, :public, :any)
 	
-	# Thanks Gary!
-	def insync?(is)
-	  # `is` will be an unsorted array of STRING, `should` will be an unsorted
-	  # array of SYMBOL. Convert `is` to symbol and sort both for comparison
-	  # to avoid breaking idempotency
-	  is.map { |x| x.to_sym }.sort == should.sort
+    # Thanks Gary!
+    def insync?(is)
+      # `is` will be an unsorted array of STRING, `should` will be an unsorted
+      # array of SYMBOL. Convert `is` to symbol and sort both for comparison
+      # to avoid breaking idempotency
+      is.map { |x| x.to_sym }.sort == should.sort
     end
   end
 
@@ -82,7 +84,6 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     end
   end
 
-
   newproperty(:localport) do
     desc "the local port the rule targets"
   end
@@ -113,18 +114,7 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     newvalues(:wireless, :lan, :ras, :any)
   end
 
-  newproperty(:security) do
-    desc "Security that applies to this rule"
-    newvalues(:authenticate, :authenc, :authdynenc, :authnoencap, :notrequired)
-  end
-
-  newproperty(:rule_source) do
-    desc "Where this rule originated"
-    munge do |value|
-      value.downcase
-    end
-  end
-
+  
   newparam(:name) do
     desc "Name of this rule"
     isnamevar

@@ -222,7 +222,7 @@ The following properties are available in the `windows_firewall_rule` type.
 
 Valid values: present, absent
 
-The basic property that the resource should be in.
+How to ensure this firewall rule (`present` or `absent`)
 
 Default value: present
 
