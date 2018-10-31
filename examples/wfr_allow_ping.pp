@@ -1,7 +1,7 @@
 #@PDQTestWin
 windows_firewall_rule { "puppet - allow icmp echo":
   ensure        => present,
-  direction     => "in",
+  direction     => "inbound",
   action        => "allow",
   protocol      => "icmpv4",
   protocol_type => "8",

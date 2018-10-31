@@ -2,6 +2,78 @@ require 'puppet_x'
 module PuppetX
   module WindowsFirewall
 
+    MOD_DIR = "windows_firewall/lib"
+    SCRIPT_FILE = "ps-bridge.ps1"
+    SCRIPT_PATH = File.join("ps/windows_firewall", SCRIPT_FILE)
+
+
+    # We need to be able to invoke the PS bridge script in both agent and apply
+    # mode. In agent mode, the file will be found in LIBDIR, in apply mode it will
+    # be found somewhere under CODEDIR. We need to read from the appropriate dir
+    # for each mode to work in the most puppety way
+    def self.resolve_ps_bridge
+
+      case Puppet.run_mode.name
+      when :user
+        # AKA `puppet resource` - first scan modules then cache
+        script = find_ps_bridge_in_modules || find_ps_bridge_in_cache
+      when :apply
+        # puppet apply demands local module install...
+        script = find_ps_bridge_in_modules
+      when :agent
+        # agent mode would only look in cache
+        script = find_ps_bridge_in_cache
+      else
+        raise("Don't know how to resolve #{SCRIPT_FILE} for windows_firewall in mode #{Puppet.run_mode.name}")
+      end
+
+      if ! script
+        raise("windows_firewall unable to find #{SCRIPT_FILE} in expected location")
+      end
+
+      cmd = ["powershell.exe", "-File", script]
+      cmd
+    end
+
+    def self.find_ps_bridge_in_modules
+      # 1st priority - environment
+      check_for_script = File.join(
+          Puppet.settings[:environmentpath],
+          Puppet.settings[:environment],
+          MOD_DIR,
+          SCRIPT_PATH,
+          )
+      Puppet.debug("Checking for #{SCRIPT_FILE} at #{check_for_script}")
+      if File.exists? check_for_script
+        script = check_for_script
+      else
+        # 2nd priority - custom module path, then basemodulepath
+        full_module_path = "#{Puppet.settings[:modulepath]}#{File::PATH_SEPARATOR}#{Puppet.settings[:basemodulepath]}"
+        full_module_path.split(File::PATH_SEPARATOR).reject do |path_element|
+          path_element.empty?
+        end.each do |path_element|
+          check_for_script = File.join(path_element, MOD_DIR, SCRIPT_PATH)
+          Puppet.debug("Checking for #{SCRIPT_FILE} at #{check_for_script}")
+          if File.exists? check_for_script
+            script = check_for_script
+            break;
+          end
+        end
+      end
+
+      script
+    end
+
+    def self.find_ps_bridge_in_cache
+      check_for_script = File.join(Puppet.settings[:libdir], SCRIPT_PATH)
+
+      Puppet.debug("Checking for #{SCRIPT_FILE} at #{check_for_script}")
+      script = File.exists? check_for_script ? check_for_script : nil
+      script
+    end
+
+
+
     # convert a puppet type key name to the argument to use for `netsh` command
     def self.global_argument_lookup(key)
       {
@@ -32,6 +104,15 @@ module PuppetX
      }.fetch(key, key.to_s)
     end
 
+    def self.to_ps(key)
+      {
+        :local_port  => lambda { |x| "\"#{x}\""},
+        :remote_port => lambda { |x| "\"#{x}\""},
+        :profile     => lambda { |x| x.instance_of?(Array) ? x.join(",") : x}
+      }.fetch(key, lambda { |x| x })
+      
+    end
+
     # create a normalised key name by:
     # 1. lowercasing input
     # 2. converting spaces to underscores
@@ -40,14 +121,65 @@ module PuppetX
       input.downcase.gsub(/\s/, "_").to_sym
     end
 
-    def self.rules(ps)
-      rules = JSON.parse Puppet::Util::Execution.execute(ps + ["show"]).to_s
+    # Convert input CamelCase to snake_case symbols
+    def self.snake_case_sym(input)
+      input.gsub(/([a-z])([A-Z])/, '\1_\2').downcase.to_sym
+    end
+
+    # Convert snake_case input symbol to CamelCase string
+    def self.camel_case(input)
+      # https://stackoverflow.com/a/24917606/3441106
+      input.to_s.split('_').collect(&:capitalize).join
+    end
+
+    def self.delete_rule(name)
+      Puppet.notice("(windows_firewall) deleting rule '#{name}'")
+      out = Puppet::Util::Execution.execute(resolve_ps_bridge + ["delete"], name).to_s
+      Puppet.debug out
+    end
+
+    def self.create_rule(resource)
+      Puppet.notice("(windows_firewall) adding rule '#{resource[:name]}'")
+      args = []
+      resource.properties.reject { |property|
+        [:ensure, :protocol_type, :protocol_code].include?(property.name)
+      }.each { |property|
+        # All properties start `-`
+        property_name = "-#{camel_case(property.name)}"
+
+        # flatten any arrays to comma deliminted lists (usually for `profile`)
+        #property_value = (property.value.instance_of?(Array)) ? property.value.join(",") : property.value
+
+        property_value = to_ps.call(property_name)
+
+        # protocol can optionally specify type and code, other properties are set very simply
+        args << property_name
+        args << property_value
+            # if property_name == "protocol" && @resource[:protocol_type] && resource[:protocol_code]
+            #   "protocol=\"#{property_value}:#{@resource[:protocol_type]},#{@resource[:protocol_code]}\""
+            # else
+            #   "#{property_name}=\"#{property_value}\""
+            # end
+      }
+      # cmd = "#{command(:cmd)} advfirewall firewall add rule name=\"#{@resource[:name]}\" #{args.join(' ')}"
+      # output = execute(cmd).to_s
+      # Puppet.debug("...#{output}")
+
+
+      Puppet.debug "Creating firewall rule with args: #{args}"
+
+      out = Puppet::Util::Execution.execute(resolve_ps_bridge + ["create"] + args)
+      Puppet.debug out
+    end
+
+    def self.rules()
+      rules = JSON.parse Puppet::Util::Execution.execute(resolve_ps_bridge + ["show"]).to_s
       
       # Rules is an array of hash as-parsed and hash keys need converted to
       # lowercase ruby labels
       puppet_rules = rules.map { |e|
         Hash[e.map { |k,v|
-          [k.downcase.to_sym, v]
+          [snake_case_sym(k), v]
         }].merge({ensure: :present})
       }
       Puppet.debug("Parsed rules: #{puppet_rules}")

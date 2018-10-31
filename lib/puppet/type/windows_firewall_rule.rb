@@ -23,7 +23,7 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     newvalues(:yes, :no)
   end
 
-  newproperty(:displayname) do
+  newproperty(:display_name) do
     desc "Displayname for this rule"
   end
 
@@ -36,7 +36,7 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     newvalues(:inbound, :outbound)
   end
 
-  newproperty(:profiles, :array_matching=>:all) do
+  newproperty(:profile, :array_matching=>:all) do
     desc "Which profile(s) this rule belongs to, use an array to pass more then one"
     newvalues(:domain, :private, :public, :any)
 	
@@ -56,11 +56,11 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     end
   end
 
-  newproperty(:localip) do
+  newproperty(:local_ip) do
     desc "the local IP the rule targets"
   end
 
-  newproperty(:remoteip) do
+  newproperty(:remote_ip) do
     desc "the remote IP the rule targets"
   end
 
@@ -71,7 +71,7 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     end
   end
 
-  newproperty(:protocol_type) do
+  newproperty(:icmp_type) do
     desc "protocol type to use (with ICMPv4/ICMPv6)"
     munge do |value|
       value.downcase
@@ -85,15 +85,15 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     end
   end
 
-  newproperty(:localport) do
+  newproperty(:local_port) do
     desc "the local port the rule targets"
   end
 
-  newproperty(:remoteport) do
+  newproperty(:remote_port) do
     desc "the remote port the rule targets"
   end
 
-  newproperty(:edge_traversal) do
+  newproperty(:edge_traversal_policy) do
     desc "Apply rule to encapsulated traffic (?) - see: https://serverfault.com/questions/89824/windows-advanced-firewall-what-does-edge-traversal-mean#89846"
     newvalues(:yes, :deferapp, :deferuser, :no)
   end
@@ -105,12 +105,9 @@ Puppet::Type.newtype(:windows_firewall_rule) do
 
   newproperty(:program) do
     desc "Path to program this rule applies to"
-    munge do |value|
-      value.downcase
-    end
   end
 
-  newproperty(:interfacetypes) do
+  newproperty(:interface_type) do
     desc "Interface types this rule applies to"
     newvalues(:wireless, :lan, :ras, :any)
   end
@@ -119,9 +116,6 @@ Puppet::Type.newtype(:windows_firewall_rule) do
   newparam(:name) do
     desc "Name of this rule"
     isnamevar
-    munge do |value|
-      value.downcase
-    end
     validate do |value|
       fail("it is not allowed to have a rule called 'any'") if value.downcase == "any"
     end

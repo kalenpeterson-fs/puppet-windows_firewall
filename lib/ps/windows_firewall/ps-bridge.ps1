@@ -1,23 +1,23 @@
 ﻿param(
-    [String] $target,
-    [String] $name,
-    [String] $displayName,
-    [String] $description,
-    $enabled,
-    $action,
-    [String] $protocol,
-    [Int]    $icmpType,
-    $profile,
-    [String] $program,
-    $direction,
-    [String] $localIp,
-    [String] $remoteIp,
-    [String] $protocolType,
-    [Int]    $protocolCode,
-    [Int]    $localPort,
-    [Int]    $remotePort,
-    $edgeTraversalPolicy,
-    $interfaceTypes
+    [String] $Target,
+    [String] $Name,
+    [String] $DisplayName,
+    [String] $Description,
+    $Enabled,
+    $Action,
+    [String] $Protocol,
+    [Int]    $IcmpType,
+    $Profile,
+    [String] $Program,
+    $Direction,
+    [String] $LocalIp,
+    [String] $RemoteIp,
+    [String] $ProtocolType,
+    [Int]    $ProtocolCode,
+    [Int]    $LocalPort,
+    [Int]    $RemotePort,
+    $EdgeTraversalPolicy,
+    $InterfaceType
 )
 
 Import-Module NetSecurity
@@ -60,22 +60,22 @@ function show {
 }
 
 function delete{
-    write-host "Deleting $($name)..."
-    remove-netfirewallrule -name $name
+    write-host "Deleting $($Name)..."
+    remove-netfirewallrule -name $Name
 }
 
 
 function create {
 
     $mainParams = @{ 
-        Name = $name;
-        Enabled = $enabled;
-        DisplayName = $displayName;
-        Description = $description;
-        Action = $action;
-        Direction = $direction;
-        EdgeTraversalPolicy = $edgeTraversalPolicy;
-        Profile = $profile;
+        Name = $Name;
+        Enabled = $Enabled;
+        DisplayName = $DisplayName;
+        Description = $Description;
+        Action = $Action;
+        Direction = $Direction;
+        EdgeTraversalPolicy = $EdgeTraversalPolicy;
+        Profile = $Profile;
     }
     
     $extraParams = @{}
@@ -83,51 +83,51 @@ function create {
     #
     # port filter
     #
-    if ($protocol) {
-        $extraParams.Add("Protocol", $protocol)
+    if ($Protocol) {
+        $extraParams.Add("Protocol", $Protocol)
     }
-    if ($protocolType) {
-        $extraParams.Add("ProtocolType", $protocolType)
+    if ($ProtocolType) {
+        $extraParams.Add("ProtocolType", $ProtocolType)
     }
-    if ($protocolCode) {
-        $extraParams.Add("ProtocolCode", $protocolCode)
+    if ($ProtocolCode) {
+        $extraParams.Add("ProtocolCode", $ProtocolCode)
     }
-    if ($icmpType) {
+    if ($IcmpType) {
         $extraParams.Add("IcmpType", $IcmpType)
     }
-    if ($localPort) {
+    if ($LocalPort) {
         $extraParams.Add("LocalPort", $LocalPort)
     }
-    if ($remotePort) {
+    if ($RemotePort) {
         $extraParams.Add("RemotePort", $RemotePort)
     }
 
     #
     # Program filter
     #
-    if ($program) {
-        $extraParam.Add("Program", $program)
+    if ($Program) {
+        $extraParam.Add("Program", $Program)
     }
     
     #
     # Interface filter
     #
-    if ($interfaceTypes) {
-        $extraParams.Add("InterfaceTypes", $interfaceTypes)
+    if ($InterfaceType) {
+        $extraParams.Add("InterfaceTypes", $InterfaceType)
     }
 
     # Host filter
-    if ($localIp) {
-        $extraParams.Add("LocalIp", $localIp)
+    if ($LocalIp) {
+        $extraParams.Add("LocalIp", $LocalIp)
     }
-    if ($remoteIp) {
-        $extraParams.Add("remoteIp", $remoteIp)
+    if ($RemoteIp) {
+        $extraParams.Add("remoteIp", $RemoteIp)
     }
     
     New-NetFirewallRule @mainParams @extraParams
 }
 
-switch ($target) {
+switch ($Target) {
     "show" {
         show
     }
@@ -138,6 +138,6 @@ switch ($target) {
         create
     }
     default {
-        write-error "invalid target: $($target)"
+        write-error "invalid target: $($Target)"
     }
 }
