@@ -150,7 +150,7 @@ module PuppetX
         # flatten any arrays to comma deliminted lists (usually for `profile`)
         #property_value = (property.value.instance_of?(Array)) ? property.value.join(",") : property.value
 
-        property_value = to_ps.call(property_name)
+        property_value = to_ps(property.name).call(property.value)
 
         # protocol can optionally specify type and code, other properties are set very simply
         args << property_name

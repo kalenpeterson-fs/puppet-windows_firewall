@@ -14,8 +14,8 @@
     [String] $RemoteIp,
     [String] $ProtocolType,
     [Int]    $ProtocolCode,
-    [Int]    $LocalPort,
-    [Int]    $RemotePort,
+    [String]    $LocalPort,
+    [String]    $RemotePort,
     $EdgeTraversalPolicy,
     $InterfaceType
 )
