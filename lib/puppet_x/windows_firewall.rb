@@ -41,7 +41,17 @@ module PuppetX
     end
 
     def self.rules(ps)
-      rules = JSON.parse Puppet::Util::Execution.execute([ps, "show", ]).to_s
+      rules = JSON.parse Puppet::Util::Execution.execute(ps + ["show"]).to_s
+      
+      # Rules is an array of hash as-parsed and hash keys need converted to
+      # lowercase ruby labels
+      puppet_rules = rules.map { |e|
+        Hash[e.map { |k,v|
+          [k.downcase.to_sym, v]
+        }].merge({ensure: :present})
+      }
+      Puppet.debug("Parsed rules: #{puppet_rules}")
+
       #
       # begin
       #   Puppet::Util::Execution.execute([cmd, "advfirewall", "firewall", "show", "rule", "all", "verbose"]).to_s.split("\n\n").each do |line|
@@ -58,7 +68,7 @@ module PuppetX
       #
       # rules
 
-      rules
+      puppet_rules
     end
 
     def self.groups(cmd)

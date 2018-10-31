@@ -23,16 +23,17 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     newvalues(:yes, :no)
   end
 
+  newproperty(:displayname) do
+    desc "Displayname for this rule"
+  end
+
   newproperty(:description) do
     desc "Description of this rule"
-    munge do |value|
-      value.downcase
-    end
   end
 
   newproperty(:direction) do
-    desc "Direction the rule applies to (In/Out)"
-    newvalues(:in, :out)
+    desc "Direction the rule applies to (`inbound`/`outbound`)"
+    newvalues(:inbound, :outbound)
   end
 
   newproperty(:profiles, :array_matching=>:all) do
