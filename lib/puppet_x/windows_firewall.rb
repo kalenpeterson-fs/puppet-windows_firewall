@@ -125,7 +125,7 @@ module PuppetX
         :action                 => lambda { |x| snake_case_sym(x)},
         :direction              => lambda { |x| snake_case_sym(x)},
         :interface_type         => lambda { |x| snake_case_sym(x)},
-        :profile                => lambda { |x| snake_case_sym(x)},
+        :profile                => lambda { |x| x.split(",").map{ |e| snake_case_sym(e.strip)}},
         :protocol               => lambda { |x| snake_case_sym(x)},
         :edge_traversal_policy  => lambda { |x| snake_case_sym(x)},
       }.fetch(key, lambda { |x| x })

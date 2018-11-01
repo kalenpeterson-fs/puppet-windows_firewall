@@ -121,7 +121,7 @@ function create {
     # Interface filter
     #
     if ($InterfaceType) {
-        $params.Add("InterfaceTypes", $InterfaceType)
+        $params.Add("InterfaceType", $InterfaceType)
     }
 
     # Host filter
