@@ -56,12 +56,12 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     end
   end
 
-  newproperty(:local_ip) do
-    desc "the local IP the rule targets"
+  newproperty(:local_address) do
+    desc "the local IP/hostname the rule targets"
   end
 
-  newproperty(:remote_ip) do
-    desc "the remote IP the rule targets"
+  newproperty(:remote_address) do
+    desc "the remote IP/hostname the rule targets"
   end
 
   newproperty(:protocol) do
@@ -70,7 +70,15 @@ Puppet::Type.newtype(:windows_firewall_rule) do
   end
 
   newproperty(:icmp_type) do
-    desc "protocol type to use (with ICMPv4/ICMPv6)"
+    desc <<-EOT
+      Protocol type to use (with ICMPv4/ICMPv6)"
+
+      Values should be:               
+        * Just the type (3)                                                                                                                                                                    ICMP type code: 0 through 255.
+        * ICMP type code pairs: 3:4 (type 3, code 4)
+        * `any`
+    EOT
+
     munge do |value|
       value.downcase
     end

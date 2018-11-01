@@ -113,6 +113,7 @@ module PuppetX
         :interface_type        => lambda { |x| x.map {|e| camel_case(e)}.join(",")},
         :profile               => lambda { |x| x.map {|e| camel_case(e)}.join(",")},
         :protocol              => lambda { |x| x.to_s.upcase.sub("V","v")},
+        :icmp_type             => lambda { |x| camel_case(x)},
         :edge_traversal_policy => lambda { |x| camel_case(x)},
         :local_port            => lambda { |x| "\"#{x}\""},
         :remote_port           => lambda { |x| "\"#{x}\""},
@@ -127,6 +128,7 @@ module PuppetX
         :interface_type         => lambda { |x| x.split(",").map{ |e| snake_case_sym(e.strip)}},
         :profile                => lambda { |x| x.split(",").map{ |e| snake_case_sym(e.strip)}},
         :protocol               => lambda { |x| snake_case_sym(x)},
+        :icmp_type              => lambda { |x| x.downcase},
         :edge_traversal_policy  => lambda { |x| snake_case_sym(x)},
       }.fetch(key, lambda { |x| x })
     end

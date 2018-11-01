@@ -6,7 +6,7 @@
     $Enabled,
     $Action,
     [String] $Protocol,
-    [Int]    $IcmpType,
+    $IcmpType,
     $Profile,
     [String] $Program,
     $Direction,
