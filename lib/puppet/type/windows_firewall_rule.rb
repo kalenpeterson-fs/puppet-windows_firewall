@@ -96,9 +96,9 @@ Puppet::Type.newtype(:windows_firewall_rule) do
 
   newproperty(:edge_traversal_policy) do
     desc "Apply rule to encapsulated traffic (?) - see: https://serverfault.com/questions/89824/windows-advanced-firewall-what-does-edge-traversal-mean#89846"
-    newvalues(:block, :allow, :defer_to_user, :defer_to_app, :none)
+    newvalues(:block, :allow, :defer_to_user, :defer_to_app)
 
-    defaultto :none
+    defaultto :block
   end
 
   newproperty(:action) do
@@ -112,9 +112,9 @@ Puppet::Type.newtype(:windows_firewall_rule) do
 
   newproperty(:interface_type) do
     desc "Interface types this rule applies to"
-    newvalues(:any, :wired, :wireless, :remote_access, :none)
+    newvalues(:any, :wired, :wireless, :remote_access)
 
-    defaultto :none
+    defaultto :any
   end
 
   

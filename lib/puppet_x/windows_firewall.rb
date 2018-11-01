@@ -107,16 +107,28 @@ module PuppetX
 
     def self.to_ps(key)
       {
+        :enabled               => lambda { |x| camel_case(x)},
+        :action                => lambda { |x| camel_case(x)},
+        :direction             => lambda { |x| camel_case(x)},
+        :interface_type        => lambda { |x| camel_case(x)},
+        :profile               => lambda { |x| x.map {|e| camel_case(e)}.join(",")},
+        :protocol              => lambda { |x| x.to_s.upcase.sub("V","v")},
+        :edge_traversal_policy => lambda { |x| camel_case(x)},
         :local_port            => lambda { |x| "\"#{x}\""},
         :remote_port           => lambda { |x| "\"#{x}\""},
-        :profile               => lambda { |x| x.map {|e| camel_case(e)}.join(",")},
-        :edge_traversal_policy => lambda { |x| camel_case(x)},
-        :direction             => lambda { |x| camel_case(x)},
-        :action                => lambda { |x| camel_case(x)},
-        :enabled               => lambda { |x| camel_case(x)},
-        :protocol              => lambda { |x| x.to_s.upcase.sub("V","v")}
       }.fetch(key, lambda { |x| x })
-      
+    end
+
+    def self.to_ruby(key)
+      {
+        :enabled                => lambda { |x| snake_case_sym(x)},
+        :action                 => lambda { |x| snake_case_sym(x)},
+        :direction              => lambda { |x| snake_case_sym(x)},
+        :interface_type         => lambda { |x| snake_case_sym(x)},
+        :profile                => lambda { |x| snake_case_sym(x)},
+        :protocol               => lambda { |x| snake_case_sym(x)},
+        :edge_traversal_policy  => lambda { |x| snake_case_sym(x)},
+      }.fetch(key, lambda { |x| x })
     end
 
     # create a normalised key name by:
@@ -144,6 +156,8 @@ module PuppetX
       Puppet.debug out
     end
 
+    # Create a new firewall rule using powershell
+    # @see https://docs.microsoft.com/en-us/powershell/module/netsecurity/new-netfirewallrule?view=win10-ps
     def self.create_rule(resource)
       Puppet.notice("(windows_firewall) adding rule '#{resource[:name]}'")
 
@@ -185,7 +199,8 @@ module PuppetX
       # lowercase ruby labels
       puppet_rules = rules.map { |e|
         Hash[e.map { |k,v|
-          [snake_case_sym(k), v]
+          key = snake_case_sym(k)
+          [key, to_ruby(key).call(v)]
         }].merge({ensure: :present})
       }
       Puppet.debug("Parsed rules: #{puppet_rules.pretty_inspect}")
