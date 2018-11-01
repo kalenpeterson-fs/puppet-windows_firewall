@@ -1,4 +1,5 @@
 require 'puppet_x'
+require 'pp'
 module PuppetX
   module WindowsFirewall
 
@@ -106,9 +107,14 @@ module PuppetX
 
     def self.to_ps(key)
       {
-        :local_port  => lambda { |x| "\"#{x}\""},
-        :remote_port => lambda { |x| "\"#{x}\""},
-        :profile     => lambda { |x| x.instance_of?(Array) ? x.join(",") : x}
+        :local_port            => lambda { |x| "\"#{x}\""},
+        :remote_port           => lambda { |x| "\"#{x}\""},
+        :profile               => lambda { |x| x.map {|e| camel_case(e)}.join(",")},
+        :edge_traversal_policy => lambda { |x| camel_case(x)},
+        :direction             => lambda { |x| camel_case(x)},
+        :action                => lambda { |x| camel_case(x)},
+        :enabled               => lambda { |x| camel_case(x)},
+        :protocol              => lambda { |x| x.to_s.upcase.sub("V","v")}
       }.fetch(key, lambda { |x| x })
       
     end
@@ -140,16 +146,16 @@ module PuppetX
 
     def self.create_rule(resource)
       Puppet.notice("(windows_firewall) adding rule '#{resource[:name]}'")
-      args = []
+
+      # `Name` is mandatory and also a `parameter` not a `property`
+      args = [ "-Name", resource[:name] ]
+      
       resource.properties.reject { |property|
-        [:ensure, :protocol_type, :protocol_code].include?(property.name)
+        [:ensure, :protocol_type, :protocol_code].include?(property.name) ||
+            property.value == :none
       }.each { |property|
         # All properties start `-`
         property_name = "-#{camel_case(property.name)}"
-
-        # flatten any arrays to comma deliminted lists (usually for `profile`)
-        #property_value = (property.value.instance_of?(Array)) ? property.value.join(",") : property.value
-
         property_value = to_ps(property.name).call(property.value)
 
         # protocol can optionally specify type and code, other properties are set very simply
@@ -172,7 +178,7 @@ module PuppetX
       Puppet.debug out
     end
 
-    def self.rules()
+    def self.rules
       rules = JSON.parse Puppet::Util::Execution.execute(resolve_ps_bridge + ["show"]).to_s
       
       # Rules is an array of hash as-parsed and hash keys need converted to
@@ -182,7 +188,7 @@ module PuppetX
           [snake_case_sym(k), v]
         }].merge({ensure: :present})
       }
-      Puppet.debug("Parsed rules: #{puppet_rules}")
+      Puppet.debug("Parsed rules: #{puppet_rules.pretty_inspect}")
 
       #
       # begin
@@ -207,7 +213,7 @@ module PuppetX
       # get all individual firewall rules, then create a new hash containing the overall group
       # status for each group of rules
       groups = {}
-      rules(cmd).select { |e|
+      rules.select { |e|
         # we are only interested in firewall rules that provide grouping information so bounce
         # anything that doesn't have it from the list
         e.has_key? :grouping

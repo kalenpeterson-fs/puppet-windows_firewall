@@ -19,12 +19,15 @@ Puppet::Type.newtype(:windows_firewall_rule) do
   end
 
   newproperty(:enabled) do
-    desc "Whether the rule is enabled (Yes or No)"
-    newvalues(:yes, :no)
+    desc "Whether the rule is enabled (`true` or `false`)"
+    newvalues(:true, :false)
+
+    defaultto :true
   end
 
   newproperty(:display_name) do
-    desc "Displayname for this rule"
+    desc "Display name for this rule"
+    defaultto { @resource[:name] }
   end
 
   newproperty(:description) do
@@ -39,7 +42,7 @@ Puppet::Type.newtype(:windows_firewall_rule) do
   newproperty(:profile, :array_matching=>:all) do
     desc "Which profile(s) this rule belongs to, use an array to pass more then one"
     newvalues(:domain, :private, :public, :any)
-	
+
     # Thanks Gary!
     def insync?(is)
       # `is` will be an unsorted array of STRING, `should` will be an unsorted
@@ -66,9 +69,7 @@ Puppet::Type.newtype(:windows_firewall_rule) do
 
   newproperty(:protocol) do
     desc "the protocol the rule targets"
-    munge do |value|
-      value.downcase
-    end
+    newvalues(:tcp, :udp, :icmpv4, :icmpv6)
   end
 
   newproperty(:icmp_type) do
@@ -95,7 +96,9 @@ Puppet::Type.newtype(:windows_firewall_rule) do
 
   newproperty(:edge_traversal_policy) do
     desc "Apply rule to encapsulated traffic (?) - see: https://serverfault.com/questions/89824/windows-advanced-firewall-what-does-edge-traversal-mean#89846"
-    newvalues(:yes, :deferapp, :deferuser, :no)
+    newvalues(:block, :allow, :defer_to_user, :defer_to_app, :none)
+
+    defaultto :none
   end
 
   newproperty(:action) do
@@ -109,7 +112,9 @@ Puppet::Type.newtype(:windows_firewall_rule) do
 
   newproperty(:interface_type) do
     desc "Interface types this rule applies to"
-    newvalues(:wireless, :lan, :ras, :any)
+    newvalues(:any, :wired, :wireless, :remote_access, :none)
+
+    defaultto :none
   end
 
   
@@ -120,5 +125,5 @@ Puppet::Type.newtype(:windows_firewall_rule) do
       fail("it is not allowed to have a rule called 'any'") if value.downcase == "any"
     end
   end
-
+  
 end

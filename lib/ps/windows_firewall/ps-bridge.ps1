@@ -35,7 +35,7 @@ function show {
                   Name = $_.Name
                   DisplayName = $_.DisplayName
                   Description = $_.Description
-                  Enabled = $_.Enabled
+                  Enabled = $_.Enabled.toString()
                   Action = $_.Action.toString()
                   Direction = $_.Direction.toString()
                   EdgeTraversalPolicy = $_.EdgeTraversalPolicy.toString()
@@ -67,64 +67,72 @@ function delete{
 
 function create {
 
-    $mainParams = @{ 
+    $params = @{
         Name = $Name;
         Enabled = $Enabled;
         DisplayName = $DisplayName;
         Description = $Description;
         Action = $Action;
-        Direction = $Direction;
-        EdgeTraversalPolicy = $EdgeTraversalPolicy;
-        Profile = $Profile;
     }
-    
-    $extraParams = @{}
-    
+
+    #
+    # general optional params
+    #
+    if ($Direction) {
+        $params.Add("Direction", $Direction)
+    }
+    if ($EdgeTraversalPolicy) {
+        $params.Add("EdgeTraversalPolicy", $EdgeTraversalPolicy)
+    }
+    if ($Profile) {
+        $params.Add("Profile", $Profile)
+    }
+
     #
     # port filter
     #
     if ($Protocol) {
-        $extraParams.Add("Protocol", $Protocol)
+        $params.Add("Protocol", $Protocol)
     }
     if ($ProtocolType) {
-        $extraParams.Add("ProtocolType", $ProtocolType)
+        $params.Add("ProtocolType", $ProtocolType)
     }
     if ($ProtocolCode) {
-        $extraParams.Add("ProtocolCode", $ProtocolCode)
+        $params.Add("ProtocolCode", $ProtocolCode)
     }
     if ($IcmpType) {
-        $extraParams.Add("IcmpType", $IcmpType)
+        $params.Add("IcmpType", $IcmpType)
     }
     if ($LocalPort) {
-        $extraParams.Add("LocalPort", $LocalPort)
+        $params.Add("LocalPort", $LocalPort)
     }
     if ($RemotePort) {
-        $extraParams.Add("RemotePort", $RemotePort)
+        $params.Add("RemotePort", $RemotePort)
     }
 
     #
     # Program filter
     #
     if ($Program) {
-        $extraParam.Add("Program", $Program)
+        $param.Add("Program", $Program)
     }
     
     #
     # Interface filter
     #
     if ($InterfaceType) {
-        $extraParams.Add("InterfaceTypes", $InterfaceType)
+        $params.Add("InterfaceTypes", $InterfaceType)
     }
 
     # Host filter
     if ($LocalIp) {
-        $extraParams.Add("LocalIp", $LocalIp)
+        $params.Add("LocalIp", $LocalIp)
     }
     if ($RemoteIp) {
-        $extraParams.Add("remoteIp", $RemoteIp)
+        $params.Add("remoteIp", $RemoteIp)
     }
     
-    New-NetFirewallRule @mainParams @extraParams
+    New-NetFirewallRule @params
 }
 
 switch ($Target) {
