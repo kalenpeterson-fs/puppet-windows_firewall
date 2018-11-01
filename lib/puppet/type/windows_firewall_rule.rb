@@ -45,10 +45,7 @@ Puppet::Type.newtype(:windows_firewall_rule) do
 
     # Thanks Gary!
     def insync?(is)
-      # `is` will be an unsorted array of STRING, `should` will be an unsorted
-      # array of SYMBOL. Convert `is` to symbol and sort both for comparison
-      # to avoid breaking idempotency
-      is.map { |x| x.to_sym }.sort == should.sort
+      is.sort == should.sort
     end
   end
 
@@ -110,11 +107,15 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     desc "Path to program this rule applies to"
   end
 
-  newproperty(:interface_type) do
+  newproperty(:interface_type, :array_matching=>:all) do
     desc "Interface types this rule applies to"
     newvalues(:any, :wired, :wireless, :remote_access)
 
     defaultto :any
+
+    def insync?(is)
+      is.sort == should.sort
+    end
   end
 
   

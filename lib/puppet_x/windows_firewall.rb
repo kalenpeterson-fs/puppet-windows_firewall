@@ -110,7 +110,7 @@ module PuppetX
         :enabled               => lambda { |x| camel_case(x)},
         :action                => lambda { |x| camel_case(x)},
         :direction             => lambda { |x| camel_case(x)},
-        :interface_type        => lambda { |x| camel_case(x)},
+        :interface_type        => lambda { |x| x.map {|e| camel_case(e)}.join(",")},
         :profile               => lambda { |x| x.map {|e| camel_case(e)}.join(",")},
         :protocol              => lambda { |x| x.to_s.upcase.sub("V","v")},
         :edge_traversal_policy => lambda { |x| camel_case(x)},
@@ -124,7 +124,7 @@ module PuppetX
         :enabled                => lambda { |x| snake_case_sym(x)},
         :action                 => lambda { |x| snake_case_sym(x)},
         :direction              => lambda { |x| snake_case_sym(x)},
-        :interface_type         => lambda { |x| snake_case_sym(x)},
+        :interface_type         => lambda { |x| x.split(",").map{ |e| snake_case_sym(e.strip)}},
         :profile                => lambda { |x| x.split(",").map{ |e| snake_case_sym(e.strip)}},
         :protocol               => lambda { |x| snake_case_sym(x)},
         :edge_traversal_policy  => lambda { |x| snake_case_sym(x)},
@@ -152,7 +152,7 @@ module PuppetX
 
     def self.delete_rule(name)
       Puppet.notice("(windows_firewall) deleting rule '#{name}'")
-      out = Puppet::Util::Execution.execute(resolve_ps_bridge + ["delete"], name).to_s
+      out = Puppet::Util::Execution.execute(resolve_ps_bridge + ["delete", name]).to_s
       Puppet.debug out
     end
 
