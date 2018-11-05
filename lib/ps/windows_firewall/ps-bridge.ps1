@@ -23,6 +23,9 @@
 Import-Module NetSecurity
 
 function show {
+    # The powershell firewall API is too slow so we read directly from registry
+    #  * https://stackoverflow.com/questions/53146884/how-can-i-speed-up-powershell-to-get-firewall-rules-on-windows-10
+    #  * https://msdn.microsoft.com/en-us/library/ff719844.aspx?f=255&MSPPError=-2147217396
     Show-NetFirewallRule | `
         Where-Object { $_.cimclass.toString() -eq "root/standardcimv2:MSFT_NetFirewallRule" } | `
             ForEach-Object { `
@@ -40,6 +43,7 @@ function show {
                   Direction = $_.Direction.toString()
                   EdgeTraversalPolicy = $_.EdgeTraversalPolicy.toString()
                   Profile = $_.Profile.toString()
+                  DisplayGroup = $_.DisplayGroup
                   # Address Filter
                   LocalAddress = $af.LocalAddress
                   RemoteAddress = $af.RemoteAddress

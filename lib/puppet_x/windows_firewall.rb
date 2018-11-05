@@ -195,6 +195,7 @@ module PuppetX
     end
 
     def self.rules
+      Puppet.debug("query all rules")
       rules = JSON.parse Puppet::Util::Execution.execute(resolve_ps_bridge + ["show"]).to_s
       
       # Rules is an array of hash as-parsed and hash keys need converted to
@@ -226,26 +227,37 @@ module PuppetX
       puppet_rules
     end
 
-    def self.groups(cmd)
+    def self.groups
+      Puppet.debug("query all groups")
       # get all individual firewall rules, then create a new hash containing the overall group
       # status for each group of rules
-      groups = {}
+      g = {}
       rules.select { |e|
         # we are only interested in firewall rules that provide grouping information so bounce
         # anything that doesn't have it from the list
-        e.has_key? :grouping
+        e.has_key? :display_group && ! e[:display_group].empty?
       }.each { |e|
         # extract the group information for each rule, use the value of :enabled to
-        # build up an overall status for the whole group
-        groups[e[:grouping]] = (groups.fetch(e[:grouping], "yes") && e[:enabled] == "yes") ? "yes" : "no"
+        # build up an overall status for the whole group. Dont forget that the
+        # value is a label :true or :false - to fit with puppet's newtype operator
+        k = e[:display_group]
+        current = g.fetch(k, e[:enabled])
+
+        if current == :true && e[:enabled] == :true
+          g[k] = :true
+        else
+          g[k] = :false
+        end
+
       }
 
       # convert into puppet's preferred hash format which is an array of hashes
       # with each hash representing a distinct resource
-      transformed = groups.map { |k,v|
+      transformed = g.map { |k,v|
         {:name => k, :enabled => v}
       }
 
+      Puppet.debug("group rules #{transformed}")
       transformed
     end
 

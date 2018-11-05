@@ -15,8 +15,9 @@ Puppet::Type.newtype(:windows_firewall_group) do
   end
 
   newproperty(:enabled) do
-    desc "Whether the rule group is enabled (Yes or No)"
-    newvalues(:yes, :no)
+    desc "Whether the rule group is enabled (`true` or `false`)"
+    newvalues(:true, :false)
+    defaultto :true
   end
 
 end

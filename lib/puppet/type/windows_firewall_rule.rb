@@ -49,7 +49,7 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     end
   end
 
-  newproperty(:grouping) do
+  newproperty(:display_group) do
     desc "group that the rule belongs to (read-only)"
     validate do |value|
       fail("grouping is readonly: https://social.technet.microsoft.com/Forums/office/en-US/669a8eaf-13d1-4010-b2ac-30c800c4b152/2008r2-firewall-add-rules-to-group-create-new-group")
