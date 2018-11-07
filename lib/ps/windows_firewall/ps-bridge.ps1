@@ -94,7 +94,7 @@ function Get-ResolveRefs {
             }
         }
         if (! $found) {
-            write-error "could not resolve $($ref) in registry under $($searchPath)"
+            throw "could not resolve $($ref) in registry under $($searchPath)"
         } else {
             $resolved += $found
         }
@@ -204,7 +204,7 @@ function Get-NormalizedKey {
     }
     $resolved = $keyNames[$keyName]
     if (! $resolved) {
-        write-error "Unable to resolve `netsh` key '$($keyName)' to a valid key"
+        throw "Unable to resolve `netsh` key '$($keyName)' to a valid key"
     }
     return $resolved
 }
@@ -298,7 +298,7 @@ function show {
 
 function delete{
     write-host "Deleting $($Name)..."
-    remove-netfirewallrule -name $Name
+    remove-netfirewallrule -name $Name -ErrorAction Stop
 }
 
 
@@ -351,7 +351,7 @@ function create {
     # Program filter
     #
     if ($Program) {
-        $param.Add("Program", $Program)
+        $params.Add("Program", $Program)
     }
     
     #
@@ -369,7 +369,7 @@ function create {
         $params.Add("remoteAddress", $RemoteAddress)
     }
 
-    New-NetFirewallRule @params
+    New-NetFirewallRule @params -ErrorAction Stop
 }
 
 switch ($Target) {
@@ -383,6 +383,6 @@ switch ($Target) {
         create
     }
     default {
-        write-error "invalid target: $($Target)"
+        throw "invalid target: $($Target)"
     }
 }
