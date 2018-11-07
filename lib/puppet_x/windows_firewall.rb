@@ -128,7 +128,7 @@ module PuppetX
         :interface_type         => lambda { |x| x.split(",").map{ |e| snake_case_sym(e.strip)}},
         :profile                => lambda { |x| x.split(",").map{ |e| snake_case_sym(e.strip)}},
         :protocol               => lambda { |x| snake_case_sym(x)},
-        :icmp_type              => lambda { |x| x.downcase},
+        :icmp_type              => lambda { |x| x ? x.downcase : x },
         :edge_traversal_policy  => lambda { |x| snake_case_sym(x)},
       }.fetch(key, lambda { |x| x })
     end
@@ -206,7 +206,7 @@ module PuppetX
           [key, to_ruby(key).call(v)]
         }].merge({ensure: :present})
       }
-      Puppet.debug("Parsed rules: #{puppet_rules.pretty_inspect}")
+      Puppet.debug("Parsed rules: #{puppet_rules.size}")
 
       #
       # begin

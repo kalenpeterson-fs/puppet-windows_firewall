@@ -80,13 +80,6 @@ Puppet::Type.newtype(:windows_firewall_rule) do
     EOT
   end
 
-  newproperty(:protocol_code) do
-    desc "protocol code to use (with ICMPv4/ICMPv6)"
-    munge do |value|
-      value.downcase
-    end
-  end
-
   newproperty(:local_port) do
     desc "the local port the rule targets"
   end

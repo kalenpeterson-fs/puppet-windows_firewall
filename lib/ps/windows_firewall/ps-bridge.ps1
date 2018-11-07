@@ -172,7 +172,7 @@ function Get-NormalizedKey {
         "Protocol" = "Protocol"
         "LocalPort" = "LocalPort"
         "Service" = "Unused_Service"
-        "Security" = "UnusedSecurity"
+        "Security" = "Unused_Security"
         "RemoteIP" = "RemoteIp"
         "Program" =  "Program"
         "Enabled" = "Enabled"
@@ -189,15 +189,16 @@ function Get-NormalizedKey {
 function Get-ParseChunk {
     param([String] $chunk)
     $rule = @{}
-    $lastKey = $null
+    $icmpType = $null
+    $validParse = $false
 
     ForEach ($line in $($chunk -split "`r`n")) {
-        if ($line -notmatch "---" -and -not [string]::IsNullOrEmpty($line)) {
+        if ($line -notmatch "---" -and $line -notmatch '^\s*$') {
+            $validParse = $true
             # split at most twice - there will be more then one colon if we have path to a program here
             # eg:
             #   Program: C:\foo.exe
             $lineSplit = $line -split(":",2)
-
 
 
             if ($lineSplit.length -eq 2) {
@@ -210,14 +211,20 @@ function Get-ParseChunk {
                 # since the CLI only lets us set one (although the GUI has no limit). Because of looping
                 # this will return the _last_ item in the list. This lets us gracefully skip over the
                 # header row "Type Code"
-                $lineSplit = $line -split("\s+")
+                $lineSplit = $line.Trim() -split("\s+")
                 if ($lineSplit.length -eq 2) {
-                    $rule["IcmpType"] = Get-NormalizedIcmpType $lineSplit[0] $lineSplit[1]
+                    $icmpType = Get-NormalizedIcmpType $lineSplit[0] $lineSplit[1]
                 }
             }
         }
     }
 
+    if ($validParse) {
+        # There is no _different_ displayname for rules from netsh but its
+        # mandatory so copy it
+        $rule["DisplayName"] = $rule["Name"]
+        $rule["IcmpType"] = $icmpType
+    }
     return $rule
 }
 
