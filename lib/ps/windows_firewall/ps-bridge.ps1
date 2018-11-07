@@ -10,8 +10,8 @@
     $Profile,
     [String] $Program,
     $Direction,
-    [String] $LocalIp,
-    [String] $RemoteIp,
+    [String] $LocalAddress,
+    [String] $RemoteAddress,
     [String] $ProtocolType,
     [Int]    $ProtocolCode,
     [String]    $LocalPort,
@@ -51,8 +51,8 @@ function Get-PSFirewallRules {
             # Address Filter
             LocalAddress = $af.LocalAddress
             RemoteAddress = $af.RemoteAddress
-            LocalIp = $af.LocalIp
-            RemoteIp = $af.RemoteIp
+#            LocalIp = $af.LocalIp
+#            RemoteIp = $af.RemoteIp
             # Port Filter
             LocalPort = $pf.LocalPort
             RemotePort = $pf.RemotePort
@@ -167,13 +167,13 @@ function Get-NormalizedKey {
         "RemotePort" = "RemotePort"
         "Grouping" = "DisplayGroup"
         "Action" = "Action"
-        "LocalIP" = "LocalIp"
+        "LocalIP" = "LocalAddress"
         "Rule Name" = "Name"
         "Protocol" = "Protocol"
         "LocalPort" = "LocalPort"
         "Service" = "Unused_Service"
         "Security" = "Unused_Security"
-        "RemoteIP" = "RemoteIp"
+        "RemoteIP" = "RemoteAddress"
         "Program" =  "Program"
         "Enabled" = "Enabled"
         "Rule Source" = "Unused_RuleSource"
@@ -193,7 +193,7 @@ function Get-ParseChunk {
     $validParse = $false
 
     ForEach ($line in $($chunk -split "`r`n")) {
-        if ($line -notmatch "---" -and $line -notmatch '^\s*$') {
+        if ($line -notmatch "---" -and $line -notmatch '^\s*$' -and $line -notmatch 'No rules match') {
             $validParse = $true
             # split at most twice - there will be more then one colon if we have path to a program here
             # eg:
@@ -338,13 +338,13 @@ function create {
     }
 
     # Host filter
-    if ($LocalIp) {
-        $params.Add("LocalIp", $LocalIp)
+    if ($LocalAddress) {
+        $params.Add("LocalAddress", $LocalAddress)
     }
-    if ($RemoteIp) {
-        $params.Add("remoteIp", $RemoteIp)
+    if ($RemoteAddress) {
+        $params.Add("remoteAddress", $RemoteAddress)
     }
-    
+
     New-NetFirewallRule @params
 }
 

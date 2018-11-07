@@ -57,11 +57,11 @@ Puppet::Type.newtype(:windows_firewall_rule) do
   end
 
   newproperty(:local_address) do
-    desc "the local IP/hostname the rule targets"
+    desc "the local IP the rule targets (hostname not allowed)"
   end
 
   newproperty(:remote_address) do
-    desc "the remote IP/hostname the rule targets"
+    desc "the remote IP the rule targets (hostname not allowed)"
   end
 
   newproperty(:protocol) do

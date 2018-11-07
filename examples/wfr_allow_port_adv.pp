@@ -8,7 +8,6 @@ windows_firewall_rule { "puppet - open port in specific profiles":
   local_port     => 666,
   remote_port    => 6661,
   local_address  => "192.168.1.1",
-  remote_address => "www.megacorp.com",
+  remote_address => "192.168.1.2",
   interface_type => ["wireless", "wired"],
-
 }

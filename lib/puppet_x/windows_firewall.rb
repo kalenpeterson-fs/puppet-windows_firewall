@@ -117,6 +117,8 @@ module PuppetX
         :edge_traversal_policy => lambda { |x| camel_case(x)},
         :local_port            => lambda { |x| "\"#{x}\""},
         :remote_port           => lambda { |x| "\"#{x}\""},
+        :local_address         => lambda { |x| "\"#{x}\""},
+        :remote_address        => lambda { |x| "\"#{x}\""},
       }.fetch(key, lambda { |x| x })
     end
 
