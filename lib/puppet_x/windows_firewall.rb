@@ -235,7 +235,7 @@ module PuppetX
       rules.select { |e|
         # we are only interested in firewall rules that provide grouping information so bounce
         # anything that doesn't have it from the list
-        e.has_key? :display_group && ! e[:display_group].empty?
+        ! e[:display_group].empty?
       }.each { |e|
         # extract the group information for each rule, use the value of :enabled to
         # build up an overall status for the whole group. Dont forget that the

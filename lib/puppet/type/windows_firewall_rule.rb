@@ -78,10 +78,6 @@ Puppet::Type.newtype(:windows_firewall_rule) do
         * ICMP type code pairs: 3:4 (type 3, code 4)
         * `any`
     EOT
-
-    munge do |value|
-      value.downcase
-    end
   end
 
   newproperty(:protocol_code) do
