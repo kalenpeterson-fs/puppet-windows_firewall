@@ -298,7 +298,16 @@ function show {
 
 function delete{
     write-host "Deleting $($Name)..."
-    remove-netfirewallrule -name $Name -ErrorAction Stop
+
+    # Depending how rule was parsed (netsh vs ps) `$Name` will contain either
+    # `DisplayName` or rule ID. Therefore, delete by Displayname first, if this
+    # fails, fallback to `Name` and if this also fails, error the script
+    # (`-ErrorAction Stop`)
+    try {
+        remove-netfirewallrule -DisplayName $Name
+    } catch [System.Management.Automation.CommandNotFoundException]{
+        remove-netfirewallrule -Name $Name -ErrorAction Stop
+    }
 }
 
 
