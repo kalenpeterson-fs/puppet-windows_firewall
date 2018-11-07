@@ -115,10 +115,10 @@ module PuppetX
         :protocol              => lambda { |x| x.to_s.upcase.sub("V","v")},
         :icmp_type             => lambda { |x| camel_case(x)},
         :edge_traversal_policy => lambda { |x| camel_case(x)},
-        :local_port            => lambda { |x| "\"#{x}\""},
-        :remote_port           => lambda { |x| "\"#{x}\""},
-        :local_address         => lambda { |x| "\"#{x}\""},
-        :remote_address        => lambda { |x| "\"#{x}\""},
+        :local_port            => lambda { |x| "\"#{camel_case(x)}\""},
+        :remote_port           => lambda { |x| "\"#{camel_case(x)}\""},
+        :local_address         => lambda { |x| "\"#{camel_case(x)}\""},
+        :remote_address        => lambda { |x| "\"#{camel_case(x)}\""},
         :program               => lambda { |x| x.gsub(/\\/, '\\\\')},
       }.fetch(key, lambda { |x| x })
     end
@@ -134,6 +134,10 @@ module PuppetX
         :icmp_type              => lambda { |x| x ? x.downcase : x },
         :edge_traversal_policy  => lambda { |x| snake_case_sym(x)},
         :program                => lambda { |x| x.gsub(/\\\\/, '\\')},
+        :remote_port            => lambda { |x| x.downcase },
+        :local_port             => lambda { |x| x.downcase },
+        :remote_address         => lambda { |x| x.downcase },
+        :local_address          => lambda { |x| x.downcase },
       }.fetch(key, lambda { |x| x })
     end
 
