@@ -30,7 +30,7 @@ Import-Module NetSecurity
 function Get-PSFirewallRules {
     param($filter)
 
-    $rules = @()
+    $rules = New-Object System.Collections.ArrayList
     Show-NetFirewallRule | Where-Object { $_.DisplayName  -in $filter} | ForEach-Object {
 
         $af = (Get-NetFirewallAddressFilter -AssociatedNetFirewallRule $_)[0]
@@ -38,7 +38,7 @@ function Get-PSFirewallRules {
         $pf = (Get-NetFirewallPortFilter -AssociatedNetFirewallRule $_)[0]
         $if = (Get-NetFirewallInterfaceTypeFilter -AssociatedNetFirewallRule $_)[0]
 
-        $rules += @{
+        $rules.Add(@{
             Name = $_.Name
             DisplayName = $_.DisplayName
             Description = $_.Description
@@ -62,7 +62,7 @@ function Get-PSFirewallRules {
             Program = $appf.Program
             # Interface Filter
             InterfaceType = $if.InterfaceType.toString()
-        }
+        })
     }
     return $rules
 }
@@ -235,8 +235,8 @@ function show {
     # step 1 - list all rules using `netsh` - the easiest and fastest way to resolve
     # 99% of values
     $netshOutput = netsh advfirewall firewall show rule all verbose | out-string
-    $missingNames = @()
-    $rules = @()
+    $missingNames = New-Object System.Collections.ArrayList
+    $rules = New-Object System.Collections.ArrayList
     $s0 = $(get-date)
 
     ForEach ($chunk in $($netshOutput -split "`r`n`r`n"))
@@ -247,9 +247,9 @@ function show {
             if ($rule["Name"].contains("@")) {
                 # additional lookup using powershell required to fully resolve one
                 # or more rules
-                $missingNames += $rule["Name"]
+                $missingNames.Add($rule["Name"]) > $null
             } else {
-                $rules += $rule
+                $rules.Add($rule) > $null
             }
         }
     }
@@ -264,11 +264,11 @@ function show {
         $s2 = $(get-date)
 
         # then use the powershell API on a very limited subset to find them
-        $rules += Get-PSFirewallRules $resolved
+        $rules = $rules + (Get-PSFirewallRules $resolved)
         $s3 = $(get-date)
     }
 
-    $rules | convertto-json
+    convertto-json $rules
 
 }
 
