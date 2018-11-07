@@ -49,10 +49,8 @@ function Get-PSFirewallRules {
             Profile = $_.Profile.toString()
             DisplayGroup = $_.DisplayGroup
             # Address Filter
-            LocalAddress = $af.LocalAddress
-            RemoteAddress = $af.RemoteAddress
-#            LocalIp = $af.LocalIp
-#            RemoteIp = $af.RemoteIp
+            LocalAddress = $af.LocalAddress.toString()
+            RemoteAddress = $af.RemoteAddress.toString()
             # Port Filter
             LocalPort = $pf.LocalPort
             RemotePort = $pf.RemotePort
@@ -104,6 +102,27 @@ function Get-ResolveRefs {
     return $resolved
 }
 
+# Local/Remote Address comes back as either a range or /32 address depending
+# how it was created. Both of these mean the same (AFAICT) and both of these
+# are coalesced to a regular IP address when using pure powershell...
+function Get-NormalizedIpAddressRange {
+    param ($rawIpAddress)
+
+
+    # any /32 can just be removed...
+
+    if ($rawIpAddress -match "/32") {
+        $fixedIpAddress = $rawIpAddress -replace "/32", ""
+    } else {
+        # see if we are are a zero-length range, eg `192.168.1.1-192.168.1.1`
+        $ipAddressSplit = $rawIpAddress -split "-"
+        if ($ipAddressSplit.length -eq 2 -and ($ipAddressSplit[0] -eq $ipAddressSplit[1])) {
+            $fixedIpAddress = $ipAddressSplit[0]
+        }
+    }
+    $ipAddress = if ($fixedIpAddress) {$fixedIpAddress} else {$rawIpAddress}
+    return $ipAddress
+}
 
 # Convert netsh value to powershell value
 function Get-NormalizedValue {
@@ -112,12 +131,17 @@ function Get-NormalizedValue {
         $rawValue
     )
 
+    # Local/Remote Address comes back as either a range or /32 address depending
+    # how it was created. Both of these mean the same (AFAICT) and both of these
+    # are coalesced to a regular IP address when using pure powershell...
     $normalize = @{
         "Enabled" = { param($x); if ($x -eq "Yes") {"True"} else {"False"}}
         "Direction" = { param($x) ; if ($x -eq "In") {"Inbound"} elseif ($x -eq "Out") {"Outbound"}}
         "EdgeTraversalPolicy" = { param($x);  if ($x -eq "No") { "Block"} elseif ($x -eq "Yes") {"Allow"} elseif ($x -eq "Defer to application") { "DeferToApp" } elseif ($x -eq "Defer to user") { "DeferToUser" }}
         "InterfaceType" = {param($x); $x -replace "RAS", "RemoteAccess" -replace "LAN", "Wired" }
         "Program" = { param($x); $x -replace '\\', '\\' }
+        "RemoteAddress" = { param($x); Get-NormalizedIpAddressRange $x}
+        "LocalAddress" = { param($x); Get-NormalizedIpAddressRange $x}
     }
 
     if ($normalize.containsKey($keyName)) {
