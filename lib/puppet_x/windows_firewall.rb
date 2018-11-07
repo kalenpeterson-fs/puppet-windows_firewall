@@ -119,6 +119,7 @@ module PuppetX
         :remote_port           => lambda { |x| "\"#{x}\""},
         :local_address         => lambda { |x| "\"#{x}\""},
         :remote_address        => lambda { |x| "\"#{x}\""},
+        :program               => lambda { |x| x.gsub(/\\/, '\\\\')},
       }.fetch(key, lambda { |x| x })
     end
 
@@ -132,6 +133,7 @@ module PuppetX
         :protocol               => lambda { |x| snake_case_sym(x)},
         :icmp_type              => lambda { |x| x ? x.downcase : x },
         :edge_traversal_policy  => lambda { |x| snake_case_sym(x)},
+        :program                => lambda { |x| x.gsub(/\\\\/, '\\')},
       }.fetch(key, lambda { |x| x })
     end
 
