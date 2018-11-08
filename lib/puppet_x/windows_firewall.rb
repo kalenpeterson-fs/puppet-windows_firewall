@@ -32,7 +32,7 @@ module PuppetX
         raise("windows_firewall unable to find #{SCRIPT_FILE} in expected location")
       end
 
-      cmd = ["powershell.exe", "-File", script]
+      cmd = ["powershell.exe", "-ExecutionPolicy", "Bypass", "-File", script]
       cmd
     end
 
