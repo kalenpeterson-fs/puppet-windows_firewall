@@ -60,7 +60,7 @@ function Get-PSFirewallRules {
             Program = $appf.Program
             # Interface Filter
             InterfaceType = $if.InterfaceType.toString()
-        })
+        }) > $null
     }
     return $rules
 }
