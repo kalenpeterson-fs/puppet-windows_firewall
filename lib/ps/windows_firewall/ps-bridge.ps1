@@ -299,15 +299,22 @@ function show {
 function delete{
     write-host "Deleting $($Name)..."
 
+    # rules containing square brackets need to be escaped or nothing will match
+    # eg: "Ruby interpreter (CUI) 2.4.3p205 [x64-mingw32]"
+    $Name = $name.replace(']', '`]').replace('[', '`[')
+
     # Depending how rule was parsed (netsh vs ps) `$Name` will contain either
     # `DisplayName` or rule ID. Therefore, delete by Displayname first, if this
     # fails, fallback to `Name` and if this also fails, error the script
     # (`-ErrorAction Stop`)
-    try {
+    if (Get-NetFirewallRule -DisplayName $name -erroraction 'silentlycontinue') {
         remove-netfirewallrule -DisplayName $Name
-    } catch [System.Management.Automation.CommandNotFoundException]{
+    } elseif (Get-NetFirewallRule -Name $name -erroraction 'silentlycontinue') {
         remove-netfirewallrule -Name $Name -ErrorAction Stop
+    } else {
+        throw "We were told to delete firewall rule '$($name)' but it does not exist"
     }
+
 }
 
 
